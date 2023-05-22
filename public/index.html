@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Metamask Authentication</title>
+    <script src="https://cdn.ethers.io/lib/ethers-5.4.6.umd.min.js" type="application/javascript"></script>
+</head>
+
+<body>
+    <button id="signIn">Sign In With Metamask</button>
+    <button id="protected">Access Protected Route</button>
+    <button id="switchWallet">Switch Wallet</button>
+
+    <script src="metamaskHelper.js"></script>
+
+    <script>
+        window.MetaMaskHelper.setAuthEndpoint('http://localhost:3000/auth');
+        window.MetaMaskHelper.setVerifyEndpoint('http://localhost:3000/verify');
+
+        document.getElementById('signIn').addEventListener('click', function () {
+            window.MetaMaskHelper.signInWithMetamask();
+        });
+
+        document.getElementById('protected').addEventListener('click', async function () {
+            const isValid = await window.MetaMaskHelper.verifyLogin();
+            if (isValid) {
+                const apiKey = localStorage.getItem('apiKey');
+                const userAddress = localStorage.getItem('userAddress');
+                const response = await fetch('http://localhost:3000/protected', {
+                    headers: {
+                        'X-API-Key': apiKey,
+                        'X-User-Address': userAddress
+                    }
+                });
+                const result = await response.json();
+                if (result.success) {
+                    alert('You have accessed a protected route!');
+                } else {
+                    alert(result.error);
+                }
+            }
+        });
+
+        document.getElementById('switchWallet').addEventListener('click', function () {
+            localStorage.removeItem('apiKey');
+            localStorage.removeItem('userAddress');
+            window.MetaMaskHelper.signInWithMetamask();
+        });
+    </script>
+</body>
+
+</html>
